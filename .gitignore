@@ -28,3 +28,6 @@ assets/js/main.min.js
 # Claude Code personal settings and guardrails
 .claude/settings.local.json
 .claude/hooks/
+
+# Local Claude Code session notes
+CLAUDE.local.md

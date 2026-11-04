@@ -5,5 +5,6 @@ category: conferences
 permalink: /publication/2018-02-01-saccade-latency-consumer-cameras
 date: 2018-02-01
 venue: 'IEEE International Conference on Image Processing (ICIP)'
+link: 'https://doi.org/10.1109/ICIP.2018.8451354'
 citation: '<b>Hsin-Yu Lai</b>, Gladynel Saavedra-Peña, Charlie G. Sodini, Thomas Heldt, Vivienne Sze (2018). &quot;Enabling Saccade Latency Measurements with Consumer-Grade Cameras.&quot; <i>IEEE International Conference on Image Processing (ICIP)</i>.'
 ---

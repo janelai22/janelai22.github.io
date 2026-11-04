@@ -11,7 +11,7 @@ redirect_from:
 
 Research summary
 ======
-Research scientist with over 10 years of experience developing machine learning methods for personalized biology and health. I design and train generative and multimodal models for large-scale single-cell and spatial data, using representation learning, attention, and graph-based modeling to connect cellular states and tissue context with individual disease outcomes. I work hands-on from data harmonization and model implementation through training, evaluation, and biological interpretation. Earlier research applied computer vision and reinforcement learning to personalized health monitoring and digital interventions.
+Research scientist with over 10 years of experience developing machine learning methods for personalized biology and health. I design and train generative and multimodal models for large-scale single-cell and spatial data, using foundation-model architectures and graph-based modeling to connect cellular states and tissue context with individual disease outcomes. I work hands-on from data harmonization and model implementation through training, evaluation, and biological interpretation. Earlier research applied computer vision and reinforcement learning to personalized health monitoring and digital interventions.
 
 Education
 ======
