@@ -5,5 +5,6 @@ category: theses
 permalink: /publication/2021-06-01-phd-thesis
 date: 2021-06-01
 venue: 'Doctoral Thesis, Massachusetts Institute of Technology'
+link: 'https://hdl.handle.net/1721.1/139923'
 citation: '<b>Hsin-Yu Lai</b> (2021). &quot;Tracking of Eye Movement Features for Individualized Assessment of Neurocognitive State Using Mobile Devices.&quot; <i>Doctoral Thesis, Massachusetts Institute of Technology</i>.'
 ---
