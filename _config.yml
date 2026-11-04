@@ -23,7 +23,7 @@ repository               : "janelai22/janelai22.github.io"
 #               Additional customization can be done by editing /_includes/author-profile.html
 author:
   # Biographic information
-  avatar           : "profile.png"
+  avatar           : "personal.jpeg"
   name             : "Hsin-Yu (Jane) Lai"
   pronouns         : # example: "she/her"
   bio              : "Scientist II at the Allen Institute. Machine learning for personalized biology and health."
@@ -228,7 +228,7 @@ collections:
     output: true
     permalink: /:collection/:path/
   projects:
-    output: true
+    output: false  # no detail pages yet; rows render on /projects/
     permalink: /:collection/:path/
 
 

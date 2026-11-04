@@ -5,8 +5,39 @@ permalink: /projects/
 author_profile: true
 ---
 
-{% include base_path %}
+{% comment %}
+  One row per project, ordered by `order` in each file in _projects/.
+  Fields: title, subtitle (optional), image, image_alt, summary,
+  bullets (up to 3), links (list of label + url; local paths or full URLs).
+{% endcomment %}
 
-{% for post in site.projects reversed %}
-  {% include archive-single.html %}
+{% assign projects = site.projects | sort: "order" %}
+<div class="project-list">
+{% for project in projects %}
+  <article class="project-row">
+    {% if project.image %}
+    <div class="project-row__image">
+      <img src="{{ project.image | relative_url }}" alt="{{ project.image_alt | default: project.title | escape }}" loading="lazy">
+    </div>
+    {% endif %}
+    <div class="project-row__text">
+      <h2 class="project-row__title">{{ project.title }}</h2>
+      {% if project.subtitle %}<p class="project-row__subtitle">{{ project.subtitle }}</p>{% endif %}
+      {% if project.summary %}<p class="project-row__summary">{{ project.summary }}</p>{% endif %}
+      {% if project.bullets %}
+      <ul class="project-row__bullets">
+        {% for b in project.bullets limit: 3 %}<li>{{ b }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+      {% if project.links %}
+      <p class="project-row__links">
+        {% for l in project.links %}
+          {% if l.url contains "://" %}{% assign href = l.url %}{% else %}{% assign href = l.url | relative_url %}{% endif %}
+          <a class="btn btn--inverse" href="{{ href }}" target="_blank" rel="noopener">{{ l.label }}</a>
+        {% endfor %}
+      </p>
+      {% endif %}
+    </div>
+  </article>
 {% endfor %}
+</div>
