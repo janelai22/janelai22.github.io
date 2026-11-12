@@ -75,7 +75,7 @@ $$\sqrt{\frac{d}{n}},$$
 
 where $$d$$ is the VC dimension and $$n$$ is the number of samples. Two things fall out of this. First, the $$1/\sqrt{n}$$ from Section 1.2 is back: more data still helps in a steady, log-log-straight way. Second, to keep the gap fixed as the model grows, the data have to grow along with it. That's "data and model size go hand in hand," now with a formula attached.
 
-Like any formula, this one comes with assumptions, and two of them matter a lot for biology. First, it assumes our samples are independent draws from the same population we'll later apply the model to. In single-cell data that's rarely true: cells from the same donor, tissue, or batch share a lot, so a hundred thousand cells from one donor are not a hundred thousand independent looks at human biology. The effective $$n$$ can be much smaller than the number of cells, a thread we'll pick up in Section 2.2. Second, it only promises that the model will do about as well on new data as on its training data, for the same task it was trained on. It says nothing about downstream tasks, like annotating cell types or predicting perturbation responses, which are usually what we actually care about. Even in computer science, the cleanest scaling laws are for the pretraining loss (how well the model predicts held-out text). Downstream performance is much noisier: it can stay flat for a while and then jump,[^emergent] and how smooth it looks depends partly on how we choose to measure it.[^mirage] We'll come back to this in Section 2.5.
+Like any formula, this one comes with assumptions, and two of them matter a lot for biology. First, it assumes our samples are independent draws from the same population we'll later apply the model to. In single-cell data that's rarely true: cells from the same donor, tissue, or batch share a lot, so a hundred thousand cells from one donor are not a hundred thousand independent looks at human biology. The effective $$n$$ can be much smaller than the number of cells, a thread we'll pick up in Section 2.3. Second, it only promises that the model will do about as well on new data as on its training data, for the same task it was trained on. It says nothing about downstream tasks, like annotating cell types or predicting perturbation responses, which are usually what we actually care about. Even in computer science, the cleanest scaling laws are for the pretraining loss (how well the model predicts held-out text). Downstream performance is much noisier: it can stay flat for a while and then jump,[^emergent] and how smooth it looks depends partly on how we choose to measure it.[^mirage] We'll come back to this in Section 2.3.
 
 There's also a catch in the other direction, and it's a good one. VC bounds describe the worst case, and for modern neural networks they are far too pessimistic. Large networks can memorize completely random labels,[^zhang] so by this measure they should overfit badly, yet on real data they often generalize well (the double descent surprise from Section 1.2). Theory gives us the right intuition about the trade-off, but it can't tell us the actual numbers for a given model and dataset. To get those, we measure them, and that's what scaling laws do.
 
@@ -89,11 +89,11 @@ There's also a catch in the other direction, and it's a good one. VC bounds desc
      budgets let us predict larger ones. Two experiments: model vs. data (Chinchilla, Figure 1) and
      hyperparameters vs. scale (DeepSeek/μP, Figure 2); Kaplan vs. Chinchilla in the box (Figure 3). -->
 
-Section 1.2 ended on a puzzle. Worst-case theory says huge neural networks should overfit, yet in practice they keep getting better as they grow. Earlier work had hinted that this improvement is predictable,[^hestness] and in 2020 Kaplan and colleagues at OpenAI showed it cleanly: as they grew model size, data, and compute, the loss fell along a straight line on log-log axes, a power law, across more than seven orders of magnitude.[^kaplan]
+Section 1.2' ended on a puzzle. Worst-case theory says huge neural networks should overfit, yet in practice they keep getting better as they grow. Earlier work had hinted that this improvement is predictable,[^hestness] and in 2020 Kaplan and colleagues at OpenAI showed it cleanly: as they grew model size, data, and compute, the loss fell along a straight line on log-log axes, a power law, across more than seven orders of magnitude.[^kaplan]
 
 What makes this useful is prediction. With careful experimental design (here, the experiments are on models rather than on cells), we can run a series of small, cheap training runs, fit the curve, and estimate how a model will do on a budget many times larger. Just as in the lab, "careful" means controlling the right variables. Chinchilla shows how to balance model size against data for a given budget,[^chinchilla] and μP shows how to choose hyperparameters, like the learning rate, so that what we learn on small models carries over to big ones.[^mup] 
 
-To see what such an experiment looks like, take Chinchilla. Training cost is measured in compute, counted in FLOPs (floating-point operations, the individual multiplications and additions a computer performs). A handy rule of thumb is that compute is about 6 × (number of parameters) × (number of training tokens), where a token is one unit of input: a word piece in text or, in many single-cell models, a gene. So for a model of a given size, compute grows in direct proportion to the data: train on twice as many tokens, and it costs twice as much. That means a fixed compute budget forces a trade-off. A bigger model can only see less data, and a smaller one can see more. It's a lot like a fixed sequencing budget, where we choose between sequencing more cells shallowly or fewer cells deeply. Hoffmann and colleagues trained over 400 models along this trade-off, at several budgets (Figure 1). Each budget traces a U-shaped valley: too small a model can't make use of the data, and too big a model doesn't get to see enough of it, the same balance as in Section 1.2. The bottom of each valley is the best split for that budget, and following those bottoms as the budget grows tells us how to scale up.
+To see what such an experiment looks like, take Chinchilla. Training cost is measured in compute, counted in FLOPs (floating-point operations, the individual multiplications and additions a computer performs). A handy rule of thumb is that compute is about 6 × (number of parameters) × (number of training tokens), where a token is one unit of input: a word piece in text or, in many single-cell models, a gene. So for a model of a given size, compute grows in direct proportion to the data: train on twice as many tokens, and it costs twice as much. That means a fixed compute budget forces a trade-off. A bigger model can only see less data, and a smaller one can see more. It's a lot like a fixed sequencing budget, where we choose between sequencing more cells shallowly or fewer cells deeply. Hoffmann and colleagues trained over 400 models in all, and in one set of experiments they held the compute budget fixed and traded model size against data, at several budgets (Figure 1). Each budget traces a U-shaped valley: too small a model can't make use of the data, and too big a model doesn't get to see enough of it, the same balance as in Section 1.2. The bottom of each valley is the best split for that budget, and following those bottoms as the budget grows tells us how to scale up.
 
 ![For each compute budget, loss against model size traces a U-shaped valley with a clear minimum.](/images/posts/scaling/chinchilla-isoflop.png)
 *Figure 1. For each fixed compute budget, there is a best model size: too small and the model can't use the data, too big and it doesn't see enough of it. Computed from the fitted loss in Hoffmann et al. (2022); adapted from their Figure 3.*
@@ -112,7 +112,7 @@ $$L(N, D) = E + \frac{A}{N^{\alpha}} + \frac{B}{D^{\beta}}$$
 
 Here $$N$$ is the number of parameters and $$D$$ is the number of training tokens. $$E$$ is the loss no model can beat (the randomness inherent in the data). $$A/N^{\alpha}$$ is the penalty for a model that is too small, and $$B/D^{\beta}$$ is the penalty for too little data. Their fitted values were $$E = 1.69$$, $$A = 406.4$$, $$B = 410.7$$, $$\alpha = 0.34$$ and $$\beta = 0.28$$. Each penalty is a power law, which is why it appears as a straight line on log-log axes.
 
-Following the bottoms of the valleys in Figure 1, Chinchilla found that model size and data should grow at about the same rate as compute grows. Kaplan et al. had concluded that the model should grow much faster than the data (Figure 3). Much of that difference comes from how the runs were set up: Kaplan's team used the same learning-rate schedule for every run, no matter how long it trained, which made smaller models trained on more data look worse than they really were. For the details, see Hoffmann et al. (2022), especially their Figure A1 on the length of the learning-rate schedule.
+Following the bottoms of the valleys in Figure 1, Chinchilla found that model size and data should grow at about the same rate as compute grows. Kaplan et al. had concluded that the model should grow much faster than the data (Figure 3). Much of that difference comes from how the runs were set up: Kaplan's team used the same learning-rate schedule for every run, no matter how long it trained. Hoffmann et al. point out that this made the loss of shorter training runs look worse than it really was, which pushed Kaplan's conclusion toward growing the model faster than the data. For the details, see Hoffmann et al. (2022), especially their Figure A1 on the length of the learning-rate schedule.
 
 ![Compute-optimal model size against compute: Kaplan's line rises faster than Hoffmann's, and Chinchilla sits on Hoffmann's line while Gopher sits above it.](/images/posts/scaling/chinchilla-projections.png)
 *Figure 3. As compute grows, Chinchilla's analysis says to grow the model more slowly (and the data faster) than Kaplan et al. suggested. Adapted from Hoffmann et al. (2022), Figure 1.*
@@ -133,97 +133,90 @@ Purpose: the open question for multiomics.
 -->
 
 ## Part 2: There's more to scaling than more GPUs
-<!-- ~150 words intro. Purpose: friendly turn from theory to practice. -->
+<!-- ~150 words intro. Purpose: connect Part 1's "careful experiments" to the three practical pieces. DRAFT v1. -->
 
-- When I first thought about scaling, I pictured adding more GPUs. (Keep it personal and light, not "people get this wrong".)
-- In practice, a scaling curve is only as good as the experiments behind it. Each point is a trained model, and every one needs to be fair, efficient, and judged the right way.
-- Four things make that possible: data, experiments, compute, and evaluation. First, a word on why tuning matters.
+Part 1 ended on a hopeful note for language models: with carefully designed experiments on small budgets, we can predict how a much bigger model will do. What we don't know yet is whether biology has the same success story. Finding out (in my case, with single-cell multiomic data) takes more than getting more GPUs. Every point on a scaling curve is a trained model, and the curve is only as trustworthy as the experiments behind it. Three things help make those experiments work. First, we need to record exactly which model architecture, which hyperparameters, and which data went into each training run, so that our comparisons are fair and any result can be traced back and reproduced (Section 2.1). Second, we need to make sure we're using our resources well, from loading the data to keeping the GPUs busy, because wasted compute means fewer experiments and slower answers (Section 2.2). Finally, we need to think about how to evaluate the results, because a lower training loss doesn't automatically mean a model has learned more biology (Section 2.3).
 
-<!-- FIGURE: four boxes (Data, Experiments, Compute, Evaluation) feeding into a scaling curve.
-![Four pillars](/images/posts/scaling/four-pillars.png)
+<!-- FIGURE (optional): three boxes (Experiments, Compute, Evaluation) feeding into a scaling curve.
+![Three pieces](/images/posts/scaling/three-pieces.png)
 -->
 
-### 2.1 Why each point on the curve needs good tuning
-<!-- ~250 words. Purpose: show that scaling laws and hyperparameter tuning are linked. -->
+### 2.1 Experiments: can we trust our comparisons?
+<!-- ~300 words. Purpose: make every training run fully described and traceable. DRAFT v1. -->
 
-- Hyperparameter, in one line: settings you choose before training, like learning rate or batch size.
-- The best hyperparameters change with scale, so a recipe tuned on a small model may not work on a big one.
-- If some points on the curve are poorly tuned, you end up measuring the tuning, not the scaling.
-- So you need many experiments, and a good way to keep track of all of them.
-- Analogy: optimizing a protocol at one sample volume doesn't guarantee it works when you scale up the reaction.
+A single scaling study can easily involve hundreds of training runs. Each one uses a particular model architecture, a particular set of hyperparameters, and a particular slice of the data, and each one becomes a single point on a curve. If we lose track of what went into any of those points, we can no longer tell whether a difference between two runs comes from scale or from something we changed by accident.
 
-<!-- PARKED (earlier draft text on Chinchilla, the learning-rate schedule and μP, moved out of 1.3).
-     Not shown on the page. The short version now lives in 1.3's "For the curious" box; reuse
-     pieces here if helpful. The schedule figure (chinchilla-cosine.png) is no longer used.
+At the Allen Institute, my manager brought in a software engineer to help our team build good habits for exactly this. The core idea is to separate two kinds of code. The *library* is the reusable part: the model, the data processing, the training loop. The *runner* is the thin layer on top that launches a specific experiment. The library changes slowly and carefully. The runner is where we say "train this version of the model, at this size, on this data, with these settings."
 
-Back to Chinchilla. Following the bottoms of the valleys in Figure 1, Hoffmann and colleagues found that model size and data should grow at about the same rate, whereas Kaplan's analysis had favored growing the model much faster than the data (Figure 3). To test this, they trained Chinchilla, a model four times smaller than their earlier Gopher, on about four times more data for the same compute, and it did better across a wide range of tasks.
+The software engineer gave us a set of guidelines, including best practices for working with Claude as a coding assistant (reusable skills and agents). But a guideline isn't a design. Our multiomic foundation model is complex, and turning those guidelines into a working training pipeline took many decisions that fell to me as the ML scientist on the project. For example, how should the code and configs be organized so that the model stays modular, letting us swap in a different encoder architecture for one modality, or a different method for fusing modalities together, without rewriting anything? And on the infrastructure side, should we train with a library like DeepSpeed (more on that in Section 2.2)? I may come back to these choices in future posts. Here, I'll stick to the two ideas that hold everything together.
 
-Why the different answer? Much of it came down to a hyperparameter. Kaplan's team used the same learning-rate schedule for every run, no matter how long it trained, while Hoffmann's team matched the schedule to each run's length (Figure 4). With a mismatched schedule, smaller models trained on more data look worse than they really are. The lesson is that a scaling law is only as good as the tuning behind each point on the curve. If some points are tuned well and others aren't, we end up measuring the tuning, not the scaling.
+First, every setting lives in a configuration file rather than being buried in the code. We use Hydra for this.[^hydra] An experiment is then fully described by its config: model size, learning rate, batch size, which subset of cells, which random seed. Hydra also makes it easy to launch a whole grid of runs, like the learning-rate sweeps in Figure 2, from a single command.
 
-That raises a harder question: how do we tune every point fairly when the best settings themselves change with size? A learning rate that works well for a small model can make a large one unstable, and tuning a large model from scratch is expensive, because every trial is a full training run. Around the same time as Chinchilla, Yang and colleagues proposed μP (short for "maximal update parametrization"), a way of setting up a network so that its best learning rate and other hyperparameters stay roughly the same as it grows. With μP, we can tune a small, cheap model and carry those settings straight over to a much larger one. In their paper, settings tuned on a 40-million-parameter model, carried over to a 6.7-billion-parameter GPT-3 model, beat the published GPT-3 results, for about 7% of the cost of pretraining.
--->
+Second, every run gets logged. We use Weights & Biases,[^wandb] which records each run's config, the version of the code it ran (its git commit), and its results as training goes, all in one searchable place. That makes it easy to line up dozens of runs and plot them against each other.
 
-### 2.2 Data: can we trust how the model scales with data?
-<!-- ~250 words -->
+The payoff is that any point on any curve can be traced back, months later, to exactly what produced it, and rerun if needed. Biologists will recognize the idea. It's a good lab notebook, where every entry records the exact protocol version and reagent lot, so that a result can be trusted and repeated.
 
-- Organize data so you can take clean subsets (10%, 25%, 50%, 100%) to trace a data-scaling curve.
-- Splits that prevent leakage: hold out by donor, study, or batch, not by random cell, or you'll overestimate performance.
-- Dataloaders: the code that streams data to the model; it must be fast and consistent.
-- Documentation: what's in each dataset, how it was processed, which version was used.
-- Analogy: a sample prep pipeline feeding a sequencer, plus a sample registry.
+### 2.2 Compute: is the GPU ever sitting idle?
+<!-- ~300 words. Purpose: use resources well, including data loading (the old data section lives here now). DRAFT v1. -->
 
-### 2.3 Experiments: can we trust our comparisons?
-<!-- ~250 words -->
+A GPU is an expensive instrument, and like any shared instrument, the time it sits idle is wasted money and slower science. In a scaling study this matters twice over: every hour saved on one run is an hour we can spend on another point on the curve.
 
-- Separate the library (reusable model and data code) from the runner (scripts that launch specific experiments).
-- Hydra: every setting lives in a config file, so an experiment is fully described by its config.
-- Weights & Biases: logs the config, the code commit, and the results for every run.
-- Payoff: any result can be traced back and reproduced months later.
-- Analogy: a lab notebook where every entry records the exact protocol version and reagent lot.
+It's surprisingly common for a GPU to spend much of its time waiting. It usually waits on one of four things.
 
-### 2.4 Compute: is the GPU ever sitting idle?
-<!-- ~250 words -->
+- **Waiting on data.** The GPU can only learn from cells as fast as we can hand them over. Single-cell datasets are large and usually stored on disk, and reading random cells from big files can be slow. The *dataloader*, the code that feeds data to the model, needs to read ahead in the background (prefetching) and use several workers at once, so that the next batch is ready before the GPU asks for it. It also helps to store the data in a format that can be read in chunks.
 
-- The GPU is an expensive instrument; idle time is wasted money and slower science.
-- Three ways it waits: on data (slow loading), on the CPU (preprocessing bottlenecks), on other GPUs (communication in multi-GPU training).
-- What to do about each, at a high level: prefetching, preprocessing ahead of time, efficient parallel strategies.
-- Analogy: a sequencer sitting idle while someone preps the next library.
+  In our case, we use annbatch,[^annbatch] which stores AnnData objects (the standard container for single-cell data) on disk in blocks, in the Zarr format. Our data mix single-cell multiomics, single-cell transcriptomics (RNA-seq), and single-cell chromatin accessibility (ATAC-seq). These differ in how sparse they are, so they also load at different speeds. We want every batch to be balanced, so that no worker is left waiting on a slower one, and representative of the whole dataset, so that each training step sees a fair sample of the data (which the training algorithm, stochastic gradient descent, relies on). To get both, we designed a dataloader on top of annbatch that reads blocks of multimodal data from disk in a fixed, pre-set proportion of each modality.
+- **Waiting on the CPU.** If every cell is normalized, filtered, or tokenized on the fly, the CPU can become the bottleneck. Often the fix is to do that preprocessing once, ahead of time, and save the result.
+- **Waiting on memory.** It's natural to judge a GPU by how many calculations (FLOPs) it can do per second, but often the real limit is how fast it can move numbers around. Its compute units are extremely fast, while fetching numbers from its own memory and writing results back is comparatively slow. Large matrix multiplications do a lot of math on every number they fetch, so they keep the GPU busy. But a model also contains many tiny operations, like adding a bias, applying an activation function, or normalizing a layer's output. Each one reads a whole block of numbers from memory, does a little arithmetic, and writes everything back, so the GPU spends most of its time shuttling data rather than computing. The fix is to *fuse* these small steps into one, so the data is read once, goes through all the steps, and is written once. It's like making a master mix instead of adding each reagent to every tube separately. Tools such as PyTorch's `torch.compile` can fuse many of these operations automatically,[^torchcompile] and specialized implementations such as FlashAttention[^flashattention] fuse all the steps of attention into a single, memory-efficient operation. Using lower-precision numbers (mixed precision) helps in the same way, because there are simply fewer bytes to move.
+- **Waiting on other GPUs.** Training needs memory not only for the model's parameters, but also for their gradients and for the optimizer's bookkeeping, which together can take several times as much memory as the parameters alone. When the required memory no longer fits on one GPU, we spread it across several. DeepSpeed[^deepspeed] does this with ZeRO, in stages:[^zero] stage 1 splits the optimizer's bookkeeping across GPUs, stage 2 also splits the gradients, and stage 3 splits the parameters themselves. Each stage saves more memory, which lets us fit a bigger model or a bigger batch. The first two stages need about as much communication between GPUs as ordinary multi-GPU training, but stage 3 has the GPUs pass parameters back and forth constantly, roughly one and a half times as much traffic, and every exchange is time a GPU spends waiting on its neighbors. So the right stage depends on the model's size and the hardware, and choosing it is one of the design decisions from Section 2.1.
+
+The first step is always to measure. Profiling tools show what fraction of the time the GPU is actually busy, and where the gaps are. It's a bit like noticing that the sequencer sits idle while someone preps the next library: the fix isn't a faster sequencer, it's a better pipeline feeding it.
 
 <!-- FIGURE: timeline of GPU busy vs. idle, before and after fixes.
 ![GPU timeline](/images/posts/scaling/gpu-timeline.png)
 -->
 
-### 2.5 Evaluation: what does "better" actually mean?
-<!-- ~250 words -->
+### 2.3 Evaluation: what does "better" actually mean?
+<!-- ~300 words. Purpose: loss vs. biology, fair held-out splits, baselines. DRAFT v1. -->
 
-- Training loss going down is a good sign, but it isn't the whole story.
-- Downstream biological tasks (cell type annotation, perturbation prediction, cross-modality prediction) are what we really care about.
-- Evaluation should use the same clean held-out splits from 2.2.
-- Open question: does lower pretraining loss translate into better biology? Scaling laws for downstream tasks may look different.
+Scaling laws are usually plotted with the pretraining loss, which tells us how well the model predicts held-out data of the same kind it was trained on. A falling loss is a good sign, but as we saw in Section 1.2', it isn't the whole story. What we really care about are biological tasks: annotating cell types, predicting how cells respond to a perturbation, or predicting one modality from another.
+
+Three things help keep the evaluation honest.
+
+- **Hold out the right things.** Cells from the same donor, study, or batch are much more alike than cells from different ones. If we split the data by randomly assigning cells to training and test sets, the test set ends up full of near-copies of the training data, and the model looks better than it is. Holding out whole donors, studies, or batches gives a much more realistic picture of how the model will do on new data.
+- **Compare against simple baselines.** A large model should beat a simple one, like a linear model or a method that just picks the most variable genes. Several benchmarks have found that single-cell foundation models don't always clear that bar,[^kedzierska] and that performance can level off well before all the pretraining data is used.[^denadel] That's not a reason to give up on them, but it's a good reason to always include a baseline.
+- **Plot downstream performance against scale, too.** Alongside the loss curve, it's worth tracking how each biological task changes as the model and data grow. These curves are often noisier than the loss curve, and they may not follow the same law.
+
+The question underneath all of this is still open: does a lower pretraining loss translate into better biology? Answering it carefully, one scaling curve at a time, is a big part of what makes this field exciting.
 
 ## Putting it together
-<!-- ~150 words. Purpose: tie Part 1 and Part 2 together. -->
+<!-- ~150 words. Purpose: tie Part 1 and Part 2 together. DRAFT v1. -->
 
-- Scaling laws give us a map for growing a model; the research workflow is what lets us read that map reliably.
-- If any of the four pieces is shaky, the curve can be misleading or too expensive to measure.
-- What I'm doing in practice for my multiomic foundation model.
+Scaling laws give us a map for growing a model: they tell us how performance should improve as we add data, parameters, and compute, and how to balance them. But a map is only useful if we can read it reliably. Each point on a scaling curve is a training run, and the curve can only be trusted if every run is fully recorded (Section 2.1), runs efficiently enough that we can afford enough of them (Section 2.2), and is judged in a way that reflects the biology we care about (Section 2.3). If any one of these is shaky, the curve can mislead us, or simply cost too much to measure.
+
+<!-- TODO (Jane): one or two sentences on what you're doing in practice for your multiomic
+     foundation model, e.g. which scaling experiments you're running or planning. -->
 
 ## What's next
-<!-- ~100 words -->
+<!-- ~100 words. DRAFT v1. -->
 
-- This is the first of a series: one deep-dive post per pillar.
-- Invite readers (especially biologists) to reach out with questions, ideas, or datasets.
+This post is the first in a series. In the next few, I'll take each piece from Part 2 in turn and go into more detail: how I set up experiments so they stay traceable, how to keep the GPUs busy with large single-cell datasets, and how to evaluate a model on the biology rather than just the loss.
+
+If you're a biologist curious about any of this, or you have questions, ideas, or datasets you think would make a good test, I'd love to hear from you.
 
 ## Glossary
-<!-- Optional -->
 
-- **GPU:** ...
-- **Epoch:** ...
-- **Batch:** ...
-- **Loss:** ...
-- **Hyperparameter:** ...
-- **Dataloader:** ...
-- **Config:** ...
+- **GPU:** a graphics processing unit, a chip that can do many simple calculations at once. It's the workhorse for training neural networks.
+- **Parameter:** a number inside the model that is adjusted during training. "Model size" usually means the number of parameters.
+- **Token:** one unit of input to the model, such as a word piece in text or, in many single-cell models, a gene.
+- **FLOP:** one floating-point operation, a single multiplication or addition. Training compute is counted in FLOPs.
+- **Loss:** a number that measures how wrong the model's predictions are. Training tries to make it smaller.
+- **Batch:** the group of examples the model looks at before each update.
+- **Epoch:** one full pass through the training data.
+- **Learning rate:** how big a step the model takes each time it updates its parameters.
+- **Hyperparameter:** a setting chosen before training, like the learning rate, batch size, or the model's width and depth.
+- **Dataloader:** the code that reads data from storage and feeds it to the model in batches.
+- **Config:** a file that lists every setting used in an experiment.
 
 ## Further reading
 <!-- Optional. Check citations before publishing. -->
@@ -237,11 +230,11 @@ That raises a harder question: how do we tune every point fairly when the best s
 [^bommasani]: Bommasani et al. (2021). *On the Opportunities and Risks of Foundation Models.* arXiv:2108.07258. <https://arxiv.org/abs/2108.07258>
 [^alphafold]: Jumper et al. (2021). *Highly accurate protein structure prediction with AlphaFold.* Nature 596, 583–589. <https://doi.org/10.1038/s41586-021-03819-2>
 [^nobel]: The Nobel Prize in Chemistry 2024 (David Baker; Demis Hassabis and John Jumper). <https://www.nobelprize.org/prizes/chemistry/2024/summary/>
-[^alphagenome]: Avsec et al. (2025). *AlphaGenome: advancing regulatory variant effect prediction with a unified DNA sequence model.* bioRxiv. <!-- TODO: add DOI / check for a peer-reviewed version --> 
+[^alphagenome]: Avsec et al. (2026). *Advancing regulatory variant effect prediction with AlphaGenome.* Nature 649, 1206–1218. <https://doi.org/10.1038/s41586-025-10014-0>
 [^geneformer]: Theodoris et al. (2023). *Transfer learning enables predictions in network biology.* Nature 618, 616–624. <https://doi.org/10.1038/s41586-023-06139-9>
 [^bunne]: Bunne et al. (2024). *How to build the virtual cell with artificial intelligence: Priorities and opportunities.* Cell 187(25), 7045–7063. <https://doi.org/10.1016/j.cell.2024.11.015>
-[^vc]: Vapnik & Chervonenkis (1971). *On the uniform convergence of relative frequencies of events to their probabilities.* Theory of Probability & Its Applications 16(2), 264–280. <!-- TODO: check details, add DOI -->
-[^epv]: Peduzzi et al. (1996). *A simulation study of the number of events per variable in logistic regression analysis.* Journal of Clinical Epidemiology 49(12), 1373–1379. <!-- TODO: check details, add DOI -->
+[^vc]: Vapnik & Chervonenkis (1971). *On the uniform convergence of relative frequencies of events to their probabilities.* Theory of Probability & Its Applications 16(2), 264–280. <https://doi.org/10.1137/1116025>
+[^epv]: Peduzzi et al. (1996). *A simulation study of the number of events per variable in logistic regression analysis.* Journal of Clinical Epidemiology 49(12), 1373–1379. <https://doi.org/10.1016/S0895-4356(96)00236-3>
 [^zhang]: Zhang et al. (2017). *Understanding deep learning requires rethinking generalization.* ICLR. <https://arxiv.org/abs/1611.03530>
 [^kaplan]: Kaplan et al. (2020). *Scaling Laws for Neural Language Models.* arXiv:2001.08361. <https://arxiv.org/abs/2001.08361>
 [^chinchilla]: Hoffmann et al. (2022). *Training Compute-Optimal Large Language Models.* NeurIPS. <https://arxiv.org/abs/2203.15556>
@@ -250,3 +243,12 @@ That raises a harder question: how do we tune every point fairly when the best s
 [^mirage]: Schaeffer et al. (2023). *Are Emergent Abilities of Large Language Models a Mirage?* NeurIPS. <https://arxiv.org/abs/2304.15004>
 [^hestness]: Hestness et al. (2017). *Deep Learning Scaling is Predictable, Empirically.* arXiv:1712.00409. <https://arxiv.org/abs/1712.00409>
 [^deepseek]: Bi et al. (2024). *DeepSeek LLM: Scaling Open-Source Language Models with Longtermism.* arXiv:2401.02954. <https://arxiv.org/abs/2401.02954>
+[^hydra]: Hydra, a framework for configuring Python applications. <https://hydra.cc>
+[^wandb]: Weights & Biases, a platform for tracking machine learning experiments. <https://wandb.ai>
+[^denadel]: DenAdel et al. (2026). *Evaluating the role of pre-training dataset size and diversity on single-cell foundation model performance.* Nature Methods. <https://doi.org/10.1038/s41592-026-03120-y>
+[^deepspeed]: DeepSpeed, a library for training large models efficiently, including across many GPUs. <https://www.deepspeed.ai>
+[^annbatch]: annbatch, a minibatch loader for on-disk AnnData stores, from Lamin Labs and scverse. <https://annbatch.readthedocs.io>
+[^torchcompile]: PyTorch documentation, *torch.compile*. <https://pytorch.org/docs/stable/generated/torch.compile.html>
+[^flashattention]: Dao et al. (2022). *FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness.* NeurIPS. <https://arxiv.org/abs/2205.14135>
+[^zero]: Rajbhandari et al. (2020). *ZeRO: Memory Optimizations Toward Training Trillion Parameter Models.* SC20. <https://arxiv.org/abs/1910.02054>
+[^kedzierska]: Kedzierska et al. (2025). *Zero-shot evaluation reveals limitations of single-cell foundation models.* Genome Biology 26, 101. <https://doi.org/10.1186/s13059-025-03574-x>
